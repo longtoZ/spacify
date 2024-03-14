@@ -1,4 +1,4 @@
-import { db } from "../connect.js";
+import { pool } from "../connect.js";
 import { client } from "../index.js";
 
 const channelId = "716609024505675778";
@@ -6,36 +6,43 @@ const channelId = "716609024505675778";
 const deleteServerMessage = async (channelId, file_id) => {
   const channel = await client.channels.fetch(channelId);
   const query =
-    "SELECT * FROM `datas` WHERE `username` = 'Nautilus' AND `file_id` = '" +
-    file_id +
-    "';";
-  console.log(query);
-  db.query(query, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      result.forEach((i) => {
-        channel.messages.delete(i.message_id);
-        console.log("Deleted ", i.message_id);
-      });
-    }
-  });
-};
+    `SELECT * FROM "datas" WHERE "username" = 'Nautilus' AND "file_id" = '${file_id}';`
+  pool.connect()
+    .then(client => {
+      console.log('Ready to delete...')
 
-const deleteDatabaseMessage = (username, file_id) => {
-  const query =
-    "DELETE FROM `files` WHERE `username` = '" +
-    username +
-    "' AND `file_id` = '" +
-    file_id +
-    "';";
-  db.query(query, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("Deleted");
-    }
+      pool.query(query, (err, result) => {
+        if (err) {
+          res.status(500).send(err)
+        } else {
+          result.rows.forEach(async (i) => {
+            await channel.messages.delete(i.message_id);
+          })
+        }
+      })
+
+      client.release()
   });
+}
+
+const deleteDatabaseMessage = (res, username, file_id) => {
+  const query =
+    `DELETE FROM "files" WHERE "username" = '${username}' AND "file_id" = '${file_id}';`;
+  
+  pool.connect()
+    .then(client => {
+      console.log('Ready to delete...')
+
+      pool.query(query, (err, result) => {
+        if (err) {
+          res.status(500).send(err)
+        } else {
+          res.status(200).send('File deleted successfully!')
+        }
+      })
+
+      client.release()
+    })
 };
 
 export const deleteController = (req, res) => {
@@ -43,6 +50,6 @@ export const deleteController = (req, res) => {
   const file_id = req.query.file_id;
 
   deleteServerMessage(channelId, file_id).then(() => {
-    deleteDatabaseMessage(username, file_id);
+    deleteDatabaseMessage(res, username, file_id);
   });
 };

@@ -5,11 +5,16 @@ import displayRouter from "./routers/display.js";
 import uploadRouter from "./routers/upload.js";
 import downloadRouter from "./routers/download.js";
 import deleteRouter from "./routers/delete.js";
+import loginRouter from "./routers/login.js";
+
+import { verifyToken } from "./middleware/verify.js";
+
 import Discord, { GatewayIntentBits } from "discord.js";
 import { eventHandler } from "./bot/handlers/eventHandler.js";
 
 dotenv.config();
 
+// Express server
 const app = express();
 const allowedOrigins = [process.env.CLIENT];
 const corsOptions = {
@@ -24,16 +29,8 @@ const corsOptions = {
   credentials: true,
 };
 
-const client = new Discord.Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ],
-});
-
 app.use(express.json());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use((err, req, res, next) => {
   if (err) {
     res.status(403).json({ message: "Not allowed by CORS" });
@@ -42,10 +39,20 @@ app.use((err, req, res, next) => {
   }
 });
 
-app.use("/", displayRouter)
-app.use("/api/upload", uploadRouter)
-app.use("/api/download", downloadRouter)
-app.use("/api/delete", deleteRouter)
+app.use("/dashboard", verifyToken, displayRouter)
+app.use("/api/upload", verifyToken, uploadRouter)
+app.use("/api/download", verifyToken, downloadRouter)
+app.use("/api/delete", verifyToken, deleteRouter)
+app.use("/api/login", loginRouter)
+
+// Discord bot
+const client = new Discord.Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
+});
 
 eventHandler(client);
 
