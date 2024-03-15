@@ -1,5 +1,5 @@
 import { pool } from "../connect.js";
-import { client } from "../index.js";
+import { client, io } from "../index.js";
 import { createTimestampString } from "../utils/common.js";
 
 // Function to send attachment to a channel
@@ -22,7 +22,7 @@ const sendAttachment = async (channel_id, filename, file) => {
 };
 
 // Function to split file into chunks and return the chunk data 
-const splitFile = async (channel_id, fileBuffer, file_id) => {
+const splitAndSendFile = async (socket, channel_id, fileBuffer, file_id) => {
   const chunkSize = 1024 * 1024;
   let offset = 0;
   let chunkNumber = 1;
@@ -32,10 +32,14 @@ const splitFile = async (channel_id, fileBuffer, file_id) => {
     const chunk = fileBuffer.slice(offset, offset + chunkSize);
     const outputFilePath = file_id + "_" + chunkNumber + ".txt";
 
-    // fs.writeFileSync(outputFilePath, chunk);
-
     const file_info = await sendAttachment(channel_id, outputFilePath, chunk);
     console.log(file_info);
+
+    // Send progress to client
+    socket.emit("uploaded_chunk", {
+      percentage: `${(offset + chunkSize) / fileBuffer.length}`,
+    })
+
     chunk_data.push({
       chunkNumber,
       file_url: file_info.url,
@@ -47,46 +51,43 @@ const splitFile = async (channel_id, fileBuffer, file_id) => {
   }
 
   return chunk_data;
+  
 };
 
 // Function to post file data to the "files" table
-const postFileData = (res, username, file_id, folder_id, file_name, file_type, chunk_data) => {
+const postFileData = async (res, username, file_id, folder_id, file_name, file_type, chunk_data) => {
   const query_files =
     `INSERT INTO "files" (username, file_id, folder_id, file_name, file_type) VALUES ('${username}', '${file_id}', '${folder_id}', '${file_name}', '${file_type}');`;
-  
-    pool.connect()
-    .then(client => {
-      console.log('Ready to post to "files"...')
-      pool.query(query_files, (err, result) => {
-        if (err) {
-          res.status(500).send(err)
-        } else {
-          const query_datas =
-          `INSERT INTO "datas" (username, file_id, chunk, file_url, message_id) VALUES` +
-          
-          chunk_data
-            .map(
-              (chunk) =>
-                `('${username}', '${file_id}', ${chunk.chunkNumber}, '${chunk.file_url}', '${chunk.message_id}')`
-            )
-            .join(", ") +
-          ";";
+  const query_datas =
+  `INSERT INTO "datas" (username, file_id, chunk, file_url, message_id) VALUES` +
+  chunk_data
+    .map(
+      (chunk) =>
+        `('${username}', '${file_id}', ${chunk.chunkNumber}, '${chunk.file_url}', '${chunk.message_id}')`
+    )
+    .join(", ") +
+  ";";
 
-          pool.query(query_datas, (err, result) => {
-            if (err) {
-              res.status(500).send(err)
-            } else {
-              res.status(200).send('File uploaded successfully!')
-            }
-          })
-        }
-      })
+  // Connect to the database
+  const client = await pool.connect()
+  console.log("Connected to database");
 
-      client.release()
-    })
-    .catch(err => {
-      res.status(500).send(err)
-    })
+  // Insert into the "files" table
+  const queryFiles = await pool.query(query_files)
+  if (queryFiles.rowCount === 0) {
+    res.status(500).send("Failed to upload file data")
+  }
+
+  // Insert into the "datas" table
+  const queryDatas = await pool.query(query_datas)
+  if (queryDatas.rowCount === 0) {
+    res.status(500).send("Failed to upload file data")
+  } else {
+    res.status(200).send("File uploaded successfully")
+  }
+
+  client.release()
+
 };
 
 // Controller to handle file upload
@@ -102,9 +103,11 @@ export const uploadController = (req, res) => {
     "_" +
     file_name.substr(0, file_name.lastIndexOf("."));
 
-  splitFile(channel_id, file.buffer.toString("base64"), file_id)
-    .then((chunk_data) => {
-      postFileData(res, username, file_id, "", file_name, file_type, chunk_data);
-    })
-
+    // Socket connection for uploading files
+  io.on("connection", async (socket) => {
+    const chunk_data = await splitAndSendFile(socket, channel_id, file.buffer.toString("base64"), file_id)
+    const file_data = await postFileData(res, username, file_id, "", file_name, file_type, chunk_data);
+    socket.disconnect();
+  })
+  
 };

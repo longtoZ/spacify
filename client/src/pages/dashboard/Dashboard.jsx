@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { io } from "socket.io-client";
 
 import { b64toBlob } from "../../utils/common.js";
 
@@ -30,7 +31,7 @@ export const Home = () => {
         }
       })      
       .catch((err) => {
-        if (err.response.status === 401) {
+        if (err.response.status === 401 || err.response.status === 403) {
           navigate("/login");
         }
       });
@@ -41,10 +42,18 @@ export const Home = () => {
   };
 
   const handleSendFile = (e) => {
-    try {
-      const formData = new FormData();
-      formData.append("file", sendFile);
-      axios.post("http://localhost:3000/api/upload", formData, {
+    const socket = io("http://localhost:3000", {
+      withCredentials: true,
+    });
+
+    socket.on("uploaded_chunk", (data) => {
+      console.log(data);
+    })
+
+    const formData = new FormData();
+    formData.append("file", sendFile);
+    axios
+      .post("http://localhost:3000/api/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${accessToken}`,
@@ -53,13 +62,24 @@ export const Home = () => {
           username: username,
           channel_id: channel_id,
         }
+      })
+      .then(() => {
+        socket.disconnect()
+      })
+      .catch((err) => {
+        console.error(err);
       });
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   const handleDownloadFile = (file_id, file_name, file_type) => {
+    const socket = io("http://localhost:3000", {
+      withCredentials: true,
+    });
+
+    socket.on("downloaded_chunk", (data) => {
+      console.log(data);
+    })
+
     axios
       .get("http://localhost:3000/api/download", {
         params: {
@@ -81,6 +101,9 @@ export const Home = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+      })
+      .then(() => {
+        socket.disconnect()
       })
       .catch((err) => {
         console.error(err);

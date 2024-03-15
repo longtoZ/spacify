@@ -15,7 +15,7 @@ export const loginController = (req, res) => {
                     res.status(500).send(err)
                 } else {
                     if (result.rows.length > 0) {
-                        const accessToken = jwt.sign({ username: username }, process.env.SECRET_TOKEN);
+                        const accessToken = jwt.sign({ username: username }, process.env.SECRET_TOKEN, {expiresIn: '1h'});
                         const channel_id = result.rows[0].channel_id;
                         
                         res.status(200).json({
