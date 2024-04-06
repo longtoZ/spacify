@@ -3,7 +3,7 @@ import { uploadController } from '../controllers/upload.js';
 import multer from 'multer';
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 }, // Optional: Set a limit for file size (10MB in this example)
+    limits: { fileSize: 1000 * 1024 * 1024 }, // Optional: Set a limit for file size (1GB in this example)
   })
 const router = express.Router();
 

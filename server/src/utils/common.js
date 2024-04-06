@@ -12,5 +12,4 @@ export const createTimestampString = () => {
     const seconds = formatTwoDigits(date.getSeconds());
 
     return `${day}${month}${year}_${hours}${minutes}${seconds}`;
-
 }

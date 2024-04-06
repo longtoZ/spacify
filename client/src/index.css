@@ -3,3 +3,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --text-color: rgb(239, 239, 239);
+    --bg-color: #0c1826;
+    --primary-1: #14202e;
+    --primary-2: #0f4a57;
+    --primary-3: #0ba990;
+    --primary-4: #36958e;
+}
+
+body {
+    color: var(--text-color);
+    background-color: var(--bg-color);
+}

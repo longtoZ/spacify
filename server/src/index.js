@@ -58,6 +58,7 @@ const io = new Server(expressServer, {
     origin: allowedOrigins,
     credentials: true,
   },
+  reconnection: false
 });
 
 // Discord bot

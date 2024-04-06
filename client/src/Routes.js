@@ -2,7 +2,7 @@ import {
     Navigate,
     Route,
     BrowserRouter as Router,
-    Routes
+    Routes,
 } from 'react-router-dom';
 
 import { Home } from './pages/dashboard/Dashboard';
@@ -14,8 +14,9 @@ export const MainRoutes = () => {
             <Routes>
                 <Route path="/dashboard" element={<Home />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/" element={<Home />} />
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
         </Router>
-    )
-}
+    );
+};
