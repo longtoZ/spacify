@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "set PORT=3000 && nodemon index.js"
+    "start": "set PORT=3000 && nodemon index.js",
+    "prettier": "prettier --write \"src/**/*.{js,ts,json,md}\""
   },
   "author": "",
   "license": "ISC",
@@ -21,5 +22,8 @@
     "pg": "^8.11.3",
     "socket.io": "^4.7.5"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "prettier": "^3.2.5"
+  }
 }

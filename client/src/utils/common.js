@@ -17,3 +17,33 @@ export const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
     const blob = new Blob(byteArrays, { type: contentType });
     return blob;
 };
+
+export const displayFileSize = (size) => {
+    if (size >= 1073741824) {
+        return `${(size / 1073741824).toFixed(2)} GB`;
+    } else if (size >= 1048576) {
+        return `${(size / 1048576).toFixed(2)} MB`;
+    } else if (size >= 1024) {
+        return `${(size / 1024).toFixed(2)} KB`;
+    } else {
+        return `${size} B`;
+    }
+}
+
+export const displayDate = (date) => {
+    const day = date.substr(0, 2);
+    const month = date.substr(2, 2);
+    const year = date.substr(4, 4);
+    const hour = date.substr(9, 2);
+    const minute = date.substr(11, 2);
+    const second = date.substr(13, 2);
+
+    const lastModifiedDate = new Date(year, month - 1, day, hour, minute, second);
+    const currentDate = new Date();
+
+    if (lastModifiedDate.day === currentDate.day) {
+        return `${hour}:${minute}:${second}`;
+    } else {
+        return `${day}/${month}/${year}`;
+    }
+}

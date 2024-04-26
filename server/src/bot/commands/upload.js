@@ -1,3 +1,1 @@
-export const upload = (client) => {
-    
-}
+export const upload = (client) => {};

@@ -1,6 +1,6 @@
 const formatTwoDigits = (number) => {
     return number < 10 ? `0${number}` : `${number}`;
-}
+};
 
 export const createTimestampString = () => {
     const date = new Date();
@@ -12,4 +12,8 @@ export const createTimestampString = () => {
     const seconds = formatTwoDigits(date.getSeconds());
 
     return `${day}${month}${year}_${hours}${minutes}${seconds}`;
-}
+};
+
+export const wait = (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
