@@ -6,6 +6,9 @@ import createSocketServer from './socket.js';
 import connectBot from './bot.js';
 
 import displayRouter from './routers/display.js';
+import pathRouter from './routers/path.js';
+import createFolderRouter from './routers/createFolder.js';
+import deleteFolderRouter from './routers/deleteFolder.js';
 import uploadRouter from './routers/upload.js';
 import downloadRouter from './routers/download.js';
 import deleteRouter from './routers/delete.js';
@@ -14,6 +17,7 @@ import loginRouter from './routers/login.js';
 import { verifyToken } from './middleware/verify.js';
 
 dotenv.config();
+
 // Discord bot
 const client = connectBot();
 
@@ -47,6 +51,9 @@ app.use((err, req, res, next) => {
 });
 
 app.use('/dashboard', verifyToken, displayRouter);
+app.use('/api/path', verifyToken, pathRouter);
+app.use('/api/create_folder', verifyToken, createFolderRouter);
+app.use('/api/delete_folder', verifyToken, deleteFolderRouter);
 app.use('/api/upload', verifyToken, uploadRouter);
 app.use('/api/download', verifyToken, downloadRouter);
 app.use('/api/delete', verifyToken, deleteRouter);

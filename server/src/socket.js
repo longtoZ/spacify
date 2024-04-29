@@ -11,7 +11,7 @@ export default function createSocketServer(expressServer, allowedOrigins) {
 
     io.on('connection', (socket) => {
         // Handle incoming connections from clients
-        console.log('New client connected');
+        console.log('Socket client connected');
 
         // socket.on("download_receiver", (data) => {
         //   console.log("id is", data.socket_id)

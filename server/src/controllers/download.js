@@ -32,6 +32,8 @@ async function downloadWithRetry(channel_id, message_id) {
     } catch (error) {
         const errorObj = JSON.parse(JSON.stringify(error));
 
+        console.log(errorObj)
+
         if (errorObj.cause.code === 'UND_ERR_CONNECT_TIMEOUT') {
             retryCount++;
             console.error('Timeout error.');
@@ -63,36 +65,54 @@ function mergeFileContent(res, content, file_name) {
 async function downloadFile(
     res,
     io,
-    socket_id,
+    socketId,
     username,
-    channel_id,
-    file_id,
-    file_name,
+    channelId,
+    folderId,
+    fileId,
+    fileName,
 ) {
-    const content = [];
-    const query = `SELECT * FROM "datas" WHERE "username" = '${username}' AND "file_id" = '${file_id}' ORDER BY "chunk" ASC;`;
-
     const client = await pool.connect();
     console.log('Connected to database for download');
 
-    const queryFiles = await pool.query(query);
-    if (queryFiles.rowCount === 0) {
+    // Check if the username and folder are matched
+    const queryFolder = `SELECT * FROM "folders" WHERE username = '${username}' AND folder_id = '${folderId}';`;
+    const queryFolderResult = await client.query(queryFolder);
+
+    if (queryFolderResult.rowCount === 0) {
+        res.status(500).send('Folder does not exist');
+    }
+
+    // Check if the file exists
+    const queryFiles = `SELECT * FROM "files" WHERE file_id = '${fileId}' AND folder_id = '${folderId}';`;
+    const queryFilesResult = await client.query(queryFiles);
+
+    if (queryFilesResult.rowCount === 0) {
+        res.status(500).send('File does not exist');
+    }
+
+    // Fetch the file data from the database
+    const content = [];
+    const queryData = `SELECT * FROM datas WHERE file_id = '${fileId}' ORDER BY "chunk" ASC;`;
+
+    const queryDataResult = await pool.query(queryData);
+    if (queryDataResult.rowCount === 0) {
         res.status(500).send('Failed to download file data');
     } else {
-        const messageIds = queryFiles.rows.map((file) => file.message_id);
+        const messageIds = queryDataResult.rows.map((file) => file.message_id);
 
         for (let index = 0; index < messageIds.length; index++) {
-            const text = await downloadWithRetry(channel_id, messageIds[index]);
+            const text = await downloadWithRetry(channelId, messageIds[index]);
 
             // Send progress to client
-            io.to(socket_id).emit('downloaded_chunk', {
+            io.to(socketId).emit('downloaded_chunk', {
                 percentage: ((index + 1) / messageIds.length) * 100,
             });
 
             content.push(text);
         }
 
-        mergeFileContent(res, content, file_name);
+        mergeFileContent(res, content, fileName);
     }
 
     client.release();
@@ -102,20 +122,22 @@ async function downloadFile(
 export const downloadController = async (req, res) => {
     const io = req.app.get('socketio');
     const username = req.query.username;
-    const channel_id = req.query.channel_id;
-    const file_id = req.query.file_id;
-    const file_name = req.query.file_name;
-    const socket_id = req.query.socket_id;
+    const channelId = req.query.channel_id;
+    const folderId = req.query.folder_id;
+    const fileId = req.query.file_id;
+    const fileName = req.query.file_name;
+    const socketId = req.query.socket_id;
 
-    console.log('Id from client: ', socket_id);
+    console.log('Id from client: ', socketId);
 
     await downloadFile(
         res,
         io,
-        socket_id,
+        socketId,
         username,
-        channel_id,
-        file_id,
-        file_name,
+        channelId,
+        folderId,
+        fileId,
+        fileName,
     );
 };

@@ -3,6 +3,6 @@ import { deleteController } from '../controllers/delete.js';
 
 const router = express.Router();
 
-router.get('/', deleteController);
+router.delete('/', deleteController);
 
 export default router;

@@ -41,7 +41,7 @@ export const displayDate = (date) => {
     const lastModifiedDate = new Date(year, month - 1, day, hour, minute, second);
     const currentDate = new Date();
 
-    if (lastModifiedDate.day === currentDate.day) {
+    if (currentDate - lastModifiedDate <= 86400000) {
         return `${hour}:${minute}:${second}`;
     } else {
         return `${day}/${month}/${year}`;

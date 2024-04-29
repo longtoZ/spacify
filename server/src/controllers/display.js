@@ -1,25 +1,33 @@
 import { pool } from '../connect.js';
 
-export const displayController = (req, res) => {
+export const displayController = async (req, res) => {
     const username = req.query.username;
+    const folder_id = username + '_' + req.query.folder_id;
 
-    const query = `SELECT * FROM "files" WHERE "username" = '${username}'`;
+    const queryFiles = `SELECT DISTINCT files.* FROM folders INNER JOIN files ON (folders.username = '${username}' AND files.folder_id = '${folder_id}')`;
+    const queryFolders = `SELECT * FROM folders WHERE username = '${username}' AND parent_id = '${folder_id}'`;
 
-    pool.connect()
-        .then((client) => {
-            console.log('Ready to query...');
+    // console.log(queryFiles)
 
-            pool.query(query, (err, result) => {
-                if (err) {
-                    res.status(500).send(err);
-                } else {
-                    res.status(200).send(result.rows);
-                }
-            });
+    const client = await pool.connect();
+    const queryFilesResult = await client.query(queryFiles);
+    const queryFoldersResult = await client.query(queryFolders);
 
-            client.release();
-        })
-        .catch((err) => {
-            res.status(500).send(err);
-        });
+    const result = {
+        folders: [],
+        files: []
+    };
+
+    queryFoldersResult.rows.forEach((row) => {
+        result.folders.push(row)
+    })
+
+    queryFilesResult.rows.forEach((row) => {
+        result.files.push(row)
+    })
+
+    res.status(200).send(result);
+
+    client.release();
+
 };

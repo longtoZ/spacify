@@ -108,30 +108,39 @@ const postFileData = async (
     file_date,
     chunk_data,
 ) => {
-    const query_files = `INSERT INTO "files" (username, file_id, folder_id, file_name, file_type, file_size, file_date) VALUES ('${username}', '${file_id}', '${folder_id}', '${file_name}', '${file_type}', '${file_size}', '${file_date}');`;
-    const query_datas =
-        `INSERT INTO "datas" (username, file_id, chunk, file_url, message_id) VALUES` +
-        chunk_data
-            .map(
-                (chunk) =>
-                    `('${username}', '${file_id}', ${chunk.chunkNumber}, '${chunk.file_url}', '${chunk.message_id}')`,
-            )
-            .join(', ') +
-        ';';
-
     // Connect to the database
     const client = await pool.connect();
     console.log('Connected to database');
 
+    // Check if the username and folder are matched
+    const queryFolder = `SELECT * FROM "folders" WHERE username = '${username}' AND folder_id = '${folder_id}';`;
+    const queryFolderResult = await client.query(queryFolder);
+
+    if (queryFolderResult.rowCount === 0) {
+        res.status(500).send('Folder does not exist');
+    }
+
+    // Insert the file data into the database
+    const queryFiles = `INSERT INTO "files" (file_id, folder_id, file_name, file_type, file_size, file_date) VALUES ('${file_id}', '${folder_id}', '${file_name}', '${file_type}', '${file_size}', '${file_date}');`;
+    const queryDatas =
+        `INSERT INTO "datas" (file_id, chunk, message_id) VALUES` +
+        chunk_data
+            .map(
+                (chunk) =>
+                    `('${file_id}', ${chunk.chunkNumber}, '${chunk.message_id}')`,
+            )
+            .join(', ') +
+        ';';
+
     // Insert into the "files" table
-    const queryFiles = await pool.query(query_files);
-    if (queryFiles.rowCount === 0) {
+    const queryFilesResult = await pool.query(queryFiles);
+    if (queryFilesResult.rowCount === 0) {
         res.status(500).send('Failed to upload file data');
     }
 
     // Insert into the "datas" table
-    const queryDatas = await pool.query(query_datas);
-    if (queryDatas.rowCount === 0) {
+    const queryDatasResult = await pool.query(queryDatas);
+    if (queryDatasResult.rowCount === 0) {
         res.status(500).send('Failed to upload file data');
     } else {
         res.status(200).send('File uploaded successfully');
@@ -146,6 +155,7 @@ export const uploadController = async (req, res) => {
     const socket_id = req.query.socket_id;
     const username = req.query.username;
     const channel_id = req.query.channel_id;
+    const folder_id = username + '_' + req.query.folder_id;
     const timestampString = createTimestampString();
 
     const file = req.file;
@@ -154,7 +164,7 @@ export const uploadController = async (req, res) => {
     const file_size = file.size;
     const file_date = timestampString;
     const file_id =
-        timestampString + '_' + file_name.substr(0, file_name.lastIndexOf('.'));
+        username + '_' + timestampString;
 
     // Socket connection for uploading files
     const chunk_data = await splitAndSendFile(
@@ -168,7 +178,7 @@ export const uploadController = async (req, res) => {
         res,
         username,
         file_id,
-        '',
+        folder_id,
         file_name,
         file_type,
         file_size,

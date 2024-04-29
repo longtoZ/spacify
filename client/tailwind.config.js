@@ -7,6 +7,7 @@ export const theme = {
             'text-color': 'var(--text-color)',
             'primary-1': 'var(--primary-1)',
             'primary-2': 'var(--primary-2)',
+            'primary-1-light': 'var(--primary-1-light)',
             'primary-1-dark': 'var(--primary-1-dark)',
             'primary-3': 'var(--primary-3)',
             'primary-4': 'var(--primary-4)',

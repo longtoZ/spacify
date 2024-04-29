@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
@@ -15,9 +15,14 @@ export const FilesContext = createContext();
 export const SocketContext = createContext();
 export const ProgressContext = createContext();
 
-export const Home = () => {
+export const Dashboard = () => {
+    const { folderId } = useParams();
+
     const navigate = useNavigate();
-    const [displayFiles, setDisplayFiles] = useState([]);
+    const location = useLocation();
+
+
+    const [displayFiles, setDisplayFiles] = useState({});
     const [filesUpdated, setFilesUpdated] = useState(false);
 
     const [username] = useState(localStorage.getItem('username'));
@@ -35,7 +40,29 @@ export const Home = () => {
     const [downloadFilename, setDownloadFilename] = useState('No download file');
     const [uploadProgress, setUploadProgress] = useState(0);
     const [downloadProgress, setDownloadProgress] = useState(0);
+    const [folderPath, setFolderPath] = useState([]);
 
+    // Get full path of current folder
+    useEffect(() => {
+        axios
+            .get('http://localhost:3000/api/path', {
+                params: {
+                    username: username,
+                    folder_id: folderId,
+                },
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            })
+            .then((res) => {
+                setFolderPath(res.data);
+            })
+            .catch((err) => {
+                console.error(err);
+            })
+    }, [location]);
+
+    // Connect to socket
     useEffect(() => {
         const newSocket = io('http://localhost:3000');
 
@@ -46,15 +73,15 @@ export const Home = () => {
         setSocket(newSocket);
     
         return () => newSocket.disconnect();
-    }, [])
+    }, []);
 
     // Display all stored files
     useEffect(() => {
-
         axios
             .get('http://localhost:3000/dashboard', {
                 params: {
                     username: username,
+                    folder_id: folderId
                 },
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
@@ -73,7 +100,7 @@ export const Home = () => {
                     navigate('/login');
                 }
             });
-    }, [filesUpdated]);
+    }, [filesUpdated, location]);
 
     return (
         <div className="Dashboard p-[2rem]">
@@ -83,9 +110,9 @@ export const Home = () => {
                     <FilesContext.Provider value = {{filesUpdated, setFilesUpdated}}>
                         {connectionStatus === "open" && (
                             <SocketContext.Provider value = {{socket, connectionStatus}}>
-                                <ProgressContext.Provider value = {{setUploadFilename, setUploadProgress}}>
-                                    <Upload channel_id={channel_id} authentication={{username, accessToken}}/>
-                                </ProgressContext.Provider>
+                                    <ProgressContext.Provider value = {{setUploadFilename, setUploadProgress}}>
+                                        <Upload channel_id={channel_id} folderId={folderId} authentication={{username, accessToken}}/>
+                                    </ProgressContext.Provider>
                             </SocketContext.Provider>
                         )}
                     </FilesContext.Provider>
@@ -97,7 +124,7 @@ export const Home = () => {
                         {connectionStatus === "open" && (
                             <SocketContext.Provider value = {{socket, connectionStatus}}>
                                 <ProgressContext.Provider value = {{setDownloadFilename, setDownloadProgress}}>
-                                    <Display channel_id={channel_id} displayFiles={displayFiles} authentication={{username, accessToken}}/>
+                                    <Display channel_id={channel_id} folderId={folderId} folderPath={folderPath} displayFiles={displayFiles} authentication={{username, accessToken}}/>
                                 </ProgressContext.Provider>
                             </SocketContext.Provider>
                         )}

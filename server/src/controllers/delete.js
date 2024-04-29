@@ -29,13 +29,30 @@ async function deleteAttachment(channel, message_id) {
     }
 }
 
-async function deleteServerMessage(channel_id, file_id) {
-    const channel = await client.channels.fetch(channel_id);
+async function deleteServerMessage(username, channelId, folderId, fileId) {
+    const channel = await client.channels.fetch(channelId);
     const dbClient = await pool.connect();
 
-    const queryFiles = `SELECT * FROM "datas" WHERE "username" = 'Nautilus' AND "file_id" = '${file_id}';`;
+    // Check if the username and folder are matched
+    const queryFolder = `SELECT * FROM "folders" WHERE username = '${username}' AND folder_id = '${folderId}';`;
+    const queryFolderResult = await dbClient.query(queryFolder);
 
-    const query = await pool.query(queryFiles);
+    if (queryFolderResult.rowCount === 0) {
+        res.status(500).send('Folder does not exist');
+    }
+
+    // Check if the file exists
+    const queryFiles = `SELECT * FROM "files" WHERE file_id = '${fileId}' AND folder_id = '${folderId}';`;
+    const queryFilesResult = await dbClient.query(queryFiles);
+
+    if (queryFilesResult.rowCount === 0) {
+        res.status(500).send('File does not exist');
+    }
+
+    // Delete the file
+    const queryDeleteFiles = `SELECT * FROM datas WHERE file_id = '${fileId}';`;
+    const query = await dbClient.query(queryDeleteFiles);
+
     if (query.rowCount === 0) {
         console.log('No file found');
     } else {
@@ -51,30 +68,28 @@ async function deleteServerMessage(channel_id, file_id) {
     dbClient.release();
 }
 
-const deleteDatabaseMessage = (res, username, file_id) => {
-    const query = `DELETE FROM "files" WHERE "username" = '${username}' AND "file_id" = '${file_id}';`;
+const deleteDatabaseMessage = async (res, file_id) => {
+    const query = `DELETE FROM "files" WHERE "file_id" = '${file_id}';`;
 
-    pool.connect().then((client) => {
-        console.log('Ready to delete...');
+    const client = await pool.connect();
+    const queryFiles = await client.query(query);
 
-        pool.query(query, (err, result) => {
-            if (err) {
-                res.status(500).send(err);
-            } else {
-                res.status(200).send('File deleted successfully!');
-            }
-        });
+    if (queryFiles.rowCount === 0) {
+        res.status(500).send('Failed to delete file');
+    } else {
+        res.status(200).send('File deleted successfully');
+    }
 
-        client.release();
-    });
+    client.release();
 };
 
 export const deleteController = async (req, res) => {
     const username = req.query.username;
-    const channel_id = req.query.channel_id;
-    const file_id = req.query.file_id;
+    const channelId = req.query.channel_id;
+    const folderId = req.query.folder_id;
+    const fileId = req.query.file_id;
 
-    deleteServerMessage(channel_id, file_id).then(() => {
-        deleteDatabaseMessage(res, username, file_id);
+    deleteServerMessage(username, channelId, folderId, fileId).then(() => {
+        deleteDatabaseMessage(res, fileId);
     });
 };

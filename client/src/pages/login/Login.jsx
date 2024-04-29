@@ -26,7 +26,7 @@ export const Login = () => {
                     localStorage.setItem('username', res.data.username);
                     localStorage.setItem('channel_id', res.data.channel_id);
                     localStorage.setItem('accessToken', res.data.accessToken);
-                    navigate('/dashboard');
+                    navigate('/dashboard/home');
                 }
             })
             .catch((err) => {
