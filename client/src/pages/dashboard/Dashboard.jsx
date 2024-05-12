@@ -36,10 +36,8 @@ export const Dashboard = () => {
     const [socket, setSocket] = useState(null);
     const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
-    const [uploadFilename, setUploadFilename] = useState('No upload file');
-    const [downloadFilename, setDownloadFilename] = useState('No download file');
-    const [uploadProgress, setUploadProgress] = useState(0);
-    const [downloadProgress, setDownloadProgress] = useState(0);
+    const [uploadFiles, setUploadFiles] = useState([]);
+    const [downloadFiles, setDownloadFiles] = useState([]);
     const [folderPath, setFolderPath] = useState([]);
 
     // Get full path of current folder
@@ -110,7 +108,7 @@ export const Dashboard = () => {
                     <FilesContext.Provider value = {{filesUpdated, setFilesUpdated}}>
                         {connectionStatus === "open" && (
                             <SocketContext.Provider value = {{socket, connectionStatus}}>
-                                    <ProgressContext.Provider value = {{setUploadFilename, setUploadProgress}}>
+                                    <ProgressContext.Provider value = {{uploadFiles, setUploadFiles}}>
                                         <Upload channel_id={channel_id} folderId={folderId} authentication={{username, accessToken}}/>
                                     </ProgressContext.Provider>
                             </SocketContext.Provider>
@@ -123,7 +121,7 @@ export const Dashboard = () => {
                     <FilesContext.Provider value = {{filesUpdated, setFilesUpdated}}>
                         {connectionStatus === "open" && (
                             <SocketContext.Provider value = {{socket, connectionStatus}}>
-                                <ProgressContext.Provider value = {{setDownloadFilename, setDownloadProgress}}>
+                                <ProgressContext.Provider value = {{downloadFiles, setDownloadFiles}}>
                                     <Display channel_id={channel_id} folderId={folderId} folderPath={folderPath} displayFiles={displayFiles} authentication={{username, accessToken}}/>
                                 </ProgressContext.Provider>
                             </SocketContext.Provider>
@@ -131,7 +129,7 @@ export const Dashboard = () => {
                     </FilesContext.Provider>
 				</div>
             </div>
-            <ProgressContext.Provider value = {{uploadFilename, downloadFilename, uploadProgress, downloadProgress}}>
+            <ProgressContext.Provider value = {{uploadFiles, setUploadFiles, downloadFiles, setDownloadFiles}}>
                 <Progress/>
             </ProgressContext.Provider>
         </div>

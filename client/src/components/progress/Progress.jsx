@@ -15,7 +15,7 @@ export const Progress = () => {
     const uploadModeRef = useRef(null);
     const downloadModeRef = useRef(null);
 
-    const { uploadFilename, downloadFilename, uploadProgress, downloadProgress } = useContext(ProgressContext);
+    const { uploadFiles, setUploadFiles, downloadFiles, setDownloadFiles } = useContext(ProgressContext);
 
     const minimize = () => {
         if (progressOpen) {
@@ -61,37 +61,55 @@ export const Progress = () => {
                     </div>
                     
                     {currentMode === 'upload' ? (
-                        <>
-                            <h1 className="text-sm mt-4">{uploadFilename}</h1>
-                            <div className="flex items-center">
-                                <div className="rounded-md overflow-hidden h-[0.5rem] w-[90%] bg-[#093333]">
-                                    <div
-                                        className='rounded-md bg-primary-3 h-full' style={{width:`${Math.round(uploadProgress)}%`, transition:"all ease-out 0.2s"}}></div>
-                                </div>
-                                <div className="w-[10%] flex justify-center">
-                                    <CancelOutlinedIcon
-                                        className="opacity-50 hover:text-red-400 cursor-pointer"
-                                        style={{ transition: 'all ease 0.1s' }}
-                                    />
-                                </div>
-                            </div>
-                        </>
+                        <ul className='overflow-y-scroll h-[4rem]'>
+                            {uploadFiles.length > 0 && uploadFiles.map((file, index) => {
+                                return (
+                                    <li className='my-2'>
+                                        <h1 className="text-sm">{file.data.name}</h1>
+                                        <div className="flex items-center">
+                                            <div className="rounded-md overflow-hidden h-[0.5rem] w-[90%] bg-[#093333]">
+                                                <div
+                                                    className='rounded-md bg-primary-3 h-full' style={{width:`${Math.round(file.percentage)}%`, transition:"all ease-out 0.2s"}}></div>
+                                            </div>
+                                            <div className="w-[10%] flex justify-center">
+                                                <CancelOutlinedIcon
+                                                    className="opacity-50 hover:text-red-400 cursor-pointer"
+                                                    style={{ transition: 'all ease 0.1s' }}
+                                                    onClick={() => {
+                                                        setUploadFiles(uploadFiles.filter((item, i) => i !== index));
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </li>
+                                )
+                            })}
+                        </ul>
                     ) : (
-                        <>
-                            <h1 className="text-sm mt-4">{downloadFilename}</h1>
-                            <div className="flex items-center">
-                                <div className="rounded-md overflow-hidden h-[0.5rem] w-[90%] bg-[#093333]">
-                                    <div
-                                        className='rounded-md bg-primary-3 h-full' style={{width:`${Math.round(downloadProgress)}%`, transition:"all ease-out 0.2s"}}></div>
-                                </div>
-                                <div className="w-[10%] flex justify-center">
-                                    <CancelOutlinedIcon
-                                        className="opacity-50 hover:text-red-400 cursor-pointer"
-                                        style={{ transition: 'all ease 0.1s' }}
-                                    />
-                                </div>
-                            </div> 
-                        </>
+                        <ul className='overflow-y-scroll h-[4rem]'>
+                            {downloadFiles.length > 0 && downloadFiles.map((file, index) => {
+                                return (
+                                    <li className='my-2'>
+                                        <h1 className="text-sm">{file.data.file_name}</h1>
+                                        <div className="flex items-center">
+                                            <div className="rounded-md overflow-hidden h-[0.5rem] w-[90%] bg-[#093333]">
+                                                <div
+                                                    className='rounded-md bg-primary-3 h-full' style={{width:`${Math.round(file.percentage)}%`, transition:"all ease-out 0.2s"}}></div>
+                                            </div>
+                                            <div className="w-[10%] flex justify-center">
+                                                <CancelOutlinedIcon
+                                                    className="opacity-50 hover:text-red-400 cursor-pointer"
+                                                    style={{ transition: 'all ease 0.1s' }}
+                                                    onClick={() => {
+                                                        setDownloadFiles(downloadFiles.filter((item, i) => i !== index));
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </li>
+                                )
+                            })}
+                        </ul>
                     )}
 
                 </div>

@@ -2,3 +2,13 @@
     background-color: var(--primary-2);
     transition: all ease 0.2s;
 }
+
+.selected {
+    background-color: var(--primary-3-50);
+}
+
+.download-multiple-blocked {
+    filter: brightness(0.5);
+    cursor: not-allowed;
+    pointer-events: none;
+}

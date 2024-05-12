@@ -12,11 +12,14 @@
     --primary-1-dark: #0f1721;
     --primary-2: #0f4a57;
     --primary-3: #0ba990;
+    --primary-3-50: #0ba99187;
     --primary-4: #36958e;
     --box-shadow: 0 0 10px rgb(0 0 0 / 30%);
     --box-shadow-light: 0 0 12px rgb(0 0 0 / 21%);
     --box-shadow-lighter: 0 0 12px rgb(0 0 0 / 15%);
     --box-shadow-thick: 0 0 20px rgb(0 0 0 /60%);
+    --text-light-teal: #8fcdcd;
+    --text-tomato: #ff6347;
 }
 
 body {

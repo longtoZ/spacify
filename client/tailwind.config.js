@@ -11,6 +11,8 @@ export const theme = {
             'primary-1-dark': 'var(--primary-1-dark)',
             'primary-3': 'var(--primary-3)',
             'primary-4': 'var(--primary-4)',
+            'text-light-teal': 'var(--text-light-teal)',
+            'text-tomato': 'var(--text-tomato)',
         },
         boxShadow: {
             basic: 'var(--box-shadow)',

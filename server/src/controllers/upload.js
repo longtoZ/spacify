@@ -61,6 +61,7 @@ const splitAndSendFile = async (
     io,
     socket_id,
     channel_id,
+    order,
     fileBuffer,
     file_id,
 ) => {
@@ -80,6 +81,7 @@ const splitAndSendFile = async (
         );
 
         io.to(socket_id).emit('uploaded_chunk', {
+            order: order,
             percentage: ((offset + chunkSize) / fileBuffer.length) * 100,
         });
 
@@ -122,6 +124,8 @@ const postFileData = async (
 
     // Insert the file data into the database
     const queryFiles = `INSERT INTO "files" (file_id, folder_id, file_name, file_type, file_size, file_date) VALUES ('${file_id}', '${folder_id}', '${file_name}', '${file_type}', '${file_size}', '${file_date}');`;
+    
+    console.log(queryFiles)
     const queryDatas =
         `INSERT INTO "datas" (file_id, chunk, message_id) VALUES` +
         chunk_data
@@ -156,10 +160,11 @@ export const uploadController = async (req, res) => {
     const username = req.query.username;
     const channel_id = req.query.channel_id;
     const folder_id = username + '_' + req.query.folder_id;
+    const order = req.query.order;
     const timestampString = createTimestampString();
 
     const file = req.file;
-    const file_name = file.originalname;
+    const file_name = Buffer.from(file.originalname, 'latin1').toString('utf8');
     const file_type = file.mimetype;
     const file_size = file.size;
     const file_date = timestampString;
@@ -171,9 +176,11 @@ export const uploadController = async (req, res) => {
         io,
         socket_id,
         channel_id,
+        order,
         file.buffer.toString('base64'),
         file_id,
     );
+
     const file_data = await postFileData(
         res,
         username,

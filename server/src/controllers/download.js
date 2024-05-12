@@ -34,7 +34,7 @@ async function downloadWithRetry(channel_id, message_id) {
 
         console.log(errorObj)
 
-        if (errorObj.cause.code === 'UND_ERR_CONNECT_TIMEOUT') {
+        if (errorObj.code === 'UND_ERR_CONNECT_TIMEOUT') {
             retryCount++;
             console.error('Timeout error.');
 
@@ -66,6 +66,7 @@ async function downloadFile(
     res,
     io,
     socketId,
+    order,
     username,
     channelId,
     folderId,
@@ -106,6 +107,7 @@ async function downloadFile(
 
             // Send progress to client
             io.to(socketId).emit('downloaded_chunk', {
+                order: order,
                 percentage: ((index + 1) / messageIds.length) * 100,
             });
 
@@ -127,6 +129,7 @@ export const downloadController = async (req, res) => {
     const fileId = req.query.file_id;
     const fileName = req.query.file_name;
     const socketId = req.query.socket_id;
+    const order = req.query.order;
 
     console.log('Id from client: ', socketId);
 
@@ -134,6 +137,7 @@ export const downloadController = async (req, res) => {
         res,
         io,
         socketId,
+        order,
         username,
         channelId,
         folderId,

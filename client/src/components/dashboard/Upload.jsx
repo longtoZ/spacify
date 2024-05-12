@@ -5,19 +5,20 @@ import { SocketContext } from '../../pages/dashboard/Dashboard';
 import { FilesContext } from '../../pages/dashboard/Dashboard';
 import { ProgressContext } from '../../pages/dashboard/Dashboard';
 
+import { displayFileSize } from '../../utils/common';
+
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import { displayFileSize } from '../../utils/common';
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import AddIcon from '@mui/icons-material/Add';
 
 export const Upload = ({channel_id, folderId, authentication}) => {
     const { filesUpdated, setFilesUpdated } = useContext(FilesContext);
-    const [newFile, setNewFile] = useState(null);
+    // const [ newFile, setNewFile ] = useState([]);
     const [ newFolder, setNewFolder ] = useState('');
 
     const { socket, connectionStatus } = useContext(SocketContext);
-    const { setUploadFilename, setUploadProgress } = useContext(ProgressContext);
+    const { uploadFiles, setUploadFiles } = useContext(ProgressContext);
 
     const newModalRef = useRef(null);
     const uploadModalRef = useRef(null);
@@ -30,7 +31,14 @@ export const Upload = ({channel_id, folderId, authentication}) => {
     
             socket.on('uploaded_chunk', (uploadProgress) => {
                 console.log(uploadProgress);
-                setUploadProgress(Math.round(uploadProgress.percentage));
+
+                // Update the progress of the file being uploaded
+                setUploadFiles(prevFile => {
+                    const updatedFile = [...prevFile];
+                    updatedFile[uploadProgress.order].percentage = uploadProgress.percentage;
+                    return updatedFile;
+                });
+                
             });
 
         } else if (connectionStatus === 'disconnected') {
@@ -48,43 +56,60 @@ export const Upload = ({channel_id, folderId, authentication}) => {
     }
 
     const handleFileChange = (e) => {
-        setNewFile(e.target.files[0]);
-        console.log(e.target.files[0]);
+        const files = [];
+
+        for (let i = 0; i < e.target.files.length; i++) {
+            files.push({
+                data: e.target.files[i],
+                percentage: 0
+            });
+        }
+
+        // Initialize upload progress for each file
+        setUploadFiles(files);
     };
 
-    const handleSendFile = (channel_id) => {
+    const handleFileUpload = async (channel_id) => {
 
-        if (!newFile) {
+        if (uploadFiles.length === 0) {
             console.log("Please choose at least one file!")
             return;
         }
 
-        setUploadFilename(newFile.name);
+        hideUploadModal();
 
-        const formData = new FormData();
-        formData.append('file', newFile);
+        for (let i = 0; i < uploadFiles.length; i++) {
 
-        axios
-            .post('http://localhost:3000/api/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
+            console.log(uploadFiles[i])
+
+            const file = uploadFiles[i].data;
+
+            const formData = new FormData();
+            formData.append('file', file);
+    
+            try {
+                const response = await axios.post('http://localhost:3000/api/upload', formData, {
+                  headers: {
+                    'Content-Type': 'multipart/form-data; chartset=utf-8',
                     Authorization: `Bearer ${authentication.accessToken}`,
-                },
-                params: {
+                  },
+                  params: {
                     username: authentication.username,
                     channel_id: channel_id,
                     folder_id: folderId,
                     socket_id: socket.id,
-                },
-            })
-            .then(() => {
+                    order: i,
+                  },
+                });
+            
+                // Handle successful upload here (optional)
                 setFilesUpdated(!filesUpdated);
-                setUploadProgress(0);
-                hideUploadModal();
-            })
-            .catch((err) => {
+
+              } catch (err) {
                 console.error(err);
-            });
+              }
+        }
+
     };
 
     const handleNewFolder = () => {
@@ -93,6 +118,8 @@ export const Upload = ({channel_id, folderId, authentication}) => {
             console.log("Please enter a folder name!")
             return;
         }
+
+        hideFolderModal();
 
         axios
             .post('http://localhost:3000/api/create_folder', {
@@ -110,7 +137,6 @@ export const Upload = ({channel_id, folderId, authentication}) => {
             .then(() => {
                 setFilesUpdated(!filesUpdated);
                 setNewFolder('');
-                hideFolderModal();
             })
             .catch((err) => {
                 console.error(err);
@@ -180,13 +206,15 @@ export const Upload = ({channel_id, folderId, authentication}) => {
                 </div>
             </div>
 
-            {/* Upload modal */}
+            {/* Background for modal */}
             <div className='fixed top-0 left-0 w-[100vw] h-[100vh] z-40 bg-black opacity-50 hidden' ref={modalBackground} onClick={() => {
                 hideUploadModal();
                 hideFolderModal();
             }}></div>
+
+            {/* Upload modal */}
             <div className='fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-8 rounded-lg bg-primary-1 z-50 w-[28rem] flex-col items-center hidden' ref={uploadModalRef}>
-                <input type="file" id="file-input" className='hidden' onChange={handleFileChange}></input>
+                <input type="file" id="file-input" multiple className='hidden' onChange={handleFileChange}></input>
                 <label for="file-input" className='p-2 rounded-lg bg-transparent border-2 border-dashed w-[12rem] h-[6rem]'>
                     <div className='flex flex-col h-full justify-center'>
                         <CloudUploadRoundedIcon className='text-center' style={{width:'100%'}}/>
@@ -197,27 +225,29 @@ export const Upload = ({channel_id, folderId, authentication}) => {
                 </label>
 
                 <ul className='w-[90%] mt-4'>
-                    <li className='flex'>
-                        {newFile ? 
-                        <>
-                            <div className='mx-1 rounded-lg bg-primary-2 flex justify-between w-[90%]'>
-                                <span className='p-2'>{newFile.name}</span>
-                                <span className='p-2'>{displayFileSize(newFile.size)}</span>
-                            </div>
-                            <button
-                                className="mx-1 w-[10%] block relative p-1 rounded-lg bg-[#ef44444d]"
-                                onClick={() => {
-                                    setNewFile(null)
-                                }}>
-                                <CloseRoundedIcon className='text-red-500 text-center'/>
-                            </button>
-                        </> : <></>}
-                    </li>
+                    {uploadFiles.length > 0 && uploadFiles.map((file, index) => {
+                        return (
+                            <li className='flex my-2'>
+                                <div className='mx-1 rounded-lg bg-primary-2 flex justify-between w-[90%]'>
+                                    <span className='p-2'>{file.data.name.length > 24 ? `${file.data.name.substr(0,24)}...` : file.data.name}</span>
+                                    <span className='p-2'>{displayFileSize(file.data.size)}</span>
+                                </div>
+                                <button
+                                    className="mx-1 w-[10%] block relative p-1 rounded-lg bg-[#ef44444d]"
+                                    onClick={() => {
+                                        setUploadFiles(uploadFiles.filter((_, i) => i !== index))
+                                    }}>
+                                    <CloseRoundedIcon className='text-red-500 text-center'/>
+                                </button>
+                            </li>
+                        )
+                    })}
+
                 </ul>
                 <button
                     className="rounded-lg p-2 bg-primary-3 float-right mt-8"
                     onClick={() => {
-                        handleSendFile(channel_id)
+                        handleFileUpload(channel_id)
                     }}>
                     Upload
                 </button>
