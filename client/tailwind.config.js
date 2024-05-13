@@ -13,6 +13,7 @@ export const theme = {
             'primary-4': 'var(--primary-4)',
             'text-light-teal': 'var(--text-light-teal)',
             'text-tomato': 'var(--text-tomato)',
+            'bg-hover': 'var(--bg-hover)',
         },
         boxShadow: {
             basic: 'var(--box-shadow)',

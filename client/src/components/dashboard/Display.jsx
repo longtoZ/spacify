@@ -8,12 +8,13 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
-import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 
 import { SocketContext } from '../../pages/dashboard/Dashboard';
 import { FilesContext } from '../../pages/dashboard/Dashboard';
 import { ProgressContext } from '../../pages/dashboard/Dashboard';
+
+import { Path } from './Path.jsx';
 
 export const Display = ({ channel_id, folderId, folderPath, displayFiles, authentication }) => {
 
@@ -294,28 +295,7 @@ export const Display = ({ channel_id, folderId, folderPath, displayFiles, authen
                 </div>
             </div>
 
-            <div className='flex flex-row items-center mb-[1rem]'>
-                {folderPath && folderPath.map((folder, index) => {
-                    return (
-                        <>
-                            <div className="text-xl font-bold p-2 mx-1 rounded-lg cursor-pointer hover:bg-primary-1-light" 
-                            onClick={() => {
-                                const fullId = folder.folder_id;
-                                const id = fullId.substr(fullId.indexOf('_', 0) + 1)
-
-                                navigate(`/dashboard/${id}`)
-                            }} 
-                            style={{transition: 'all ease 0.1s'}}>
-                                {folder.folder_name}
-                            </div>
-                            <div>
-                                {index !== folderPath.length - 1 && <KeyboardArrowRightRoundedIcon/>}
-                            </div>
-                        </>
-                        
-                    )
-                })}
-            </div>
+            <Path folderPath={folderPath}></Path>
 
             <ul className='bg-primary-1 rounded-lg p-4'>
                 <li className='flex gap-4 justify-between mb-4'>
@@ -359,7 +339,7 @@ export const Display = ({ channel_id, folderId, folderPath, displayFiles, authen
                                 </span>
                             </div>
                             <div className='option-modal w-full h-0 rounded-lg flex flex-row-reverse z-20 overflow-hidden' style={{transition:'all ease 0.2s'}}>
-                                <div className='cursor-pointer flex rounded-lg my-[0.5rem] mx-2 p-2 hover:bg-[#0000001f] text-text-tomato' onClick={() => handleFolderDelete(folder.folder_id)}>
+                                <div className='cursor-pointer flex rounded-lg my-[0.5rem] mx-2 p-2 hover:bg-bg-hover text-text-tomato' onClick={() => handleFolderDelete(folder.folder_id)}>
                                     <DeleteRoundedIcon/>
                                     <span className='ml-4'>Delete</span>
                                 </div>
@@ -389,11 +369,11 @@ export const Display = ({ channel_id, folderId, folderPath, displayFiles, authen
                             </div>
                             <div className='option-modal w-full h-0 rounded-lg flex flex-row-reverse z-20 overflow-hidden' style={{transition:'all ease 0.2s'}}>
 
-                                <div className='cursor-pointer flex rounded-lg my-[0.5rem] mx-2 p-2 hover:bg-[#0000001f] text-text-light-teal' onClick={() => handleFileDownload(file.folder_id, file.file_id, file.file_name, file.file_type)}>
+                                <div className='cursor-pointer flex rounded-lg my-[0.5rem] mx-2 p-2 hover:bg-bg-hover text-text-light-teal' onClick={() => handleFileDownload(file.folder_id, file.file_id, file.file_name, file.file_type)}>
                                     <FileDownloadRoundedIcon />
                                     <span className='ml-4'>Download</span>
                                 </div>
-                                <div className='cursor-pointer flex rounded-lg my-[0.5rem] mx-2 p-2 hover:bg-[#0000001f] text-text-tomato' onClick={() => handleFileDelete(file.folder_id, file.file_id)}>
+                                <div className='cursor-pointer flex rounded-lg my-[0.5rem] mx-2 p-2 hover:bg-bg-hover text-text-tomato' onClick={() => handleFileDelete(file.folder_id, file.file_id)}>
                                     <DeleteRoundedIcon/>
                                     <span className='ml-4'>Delete</span>
                                 </div>

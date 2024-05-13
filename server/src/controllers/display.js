@@ -4,10 +4,8 @@ export const displayController = async (req, res) => {
     const username = req.query.username;
     const folder_id = username + '_' + req.query.folder_id;
 
-    const queryFiles = `SELECT DISTINCT files.* FROM folders INNER JOIN files ON (folders.username = '${username}' AND files.folder_id = '${folder_id}')`;
+    const queryFiles = `SELECT DISTINCT files.* FROM files INNER JOIN folders ON (folders.username = '${username}' AND files.folder_id = '${folder_id}')`;
     const queryFolders = `SELECT * FROM folders WHERE username = '${username}' AND parent_id = '${folder_id}'`;
-
-    // console.log(queryFiles)
 
     const client = await pool.connect();
     const queryFilesResult = await client.query(queryFiles);

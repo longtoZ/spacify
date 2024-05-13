@@ -13,6 +13,7 @@ import uploadRouter from './routers/upload.js';
 import downloadRouter from './routers/download.js';
 import deleteRouter from './routers/delete.js';
 import loginRouter from './routers/login.js';
+import searchRouter from './routers/search.js';
 
 import { verifyToken } from './middleware/verify.js';
 
@@ -58,6 +59,7 @@ app.use('/api/upload', verifyToken, uploadRouter);
 app.use('/api/download', verifyToken, downloadRouter);
 app.use('/api/delete', verifyToken, deleteRouter);
 app.use('/api/login', loginRouter);
+app.use('/api/search', verifyToken, searchRouter);
 
 // Socket
 const io = createSocketServer(expressServer, allowedOrigins);

@@ -5,7 +5,7 @@ import { io } from 'socket.io-client';
 
 import { SideBar } from '../../components/dashboard/SideBar';
 import { Upload } from '../../components/dashboard/Upload';
-import { Search } from '../../components/dashboard/Search';
+import { SearchBar } from '../../components/dashboard/SearchBar';
 import { Display } from '../../components/dashboard/Display';
 import { Progress } from '../../components/progress/Progress';
 
@@ -20,7 +20,6 @@ export const Dashboard = () => {
 
     const navigate = useNavigate();
     const location = useLocation();
-
 
     const [displayFiles, setDisplayFiles] = useState({});
     const [filesUpdated, setFilesUpdated] = useState(false);
@@ -104,7 +103,7 @@ export const Dashboard = () => {
         <div className="Dashboard p-[2rem]">
             <div className='flex relative'>
 				<div className='w-[14%] h-full fixed z-20'>
-                    <h1 className="text-3xl font-bold mb-8">Spacify</h1>
+                    <h1 className="text-3xl font-bold mb-8 cursor-pointer" onClick={() => navigate('/')}>Spacify</h1>
                     <FilesContext.Provider value = {{filesUpdated, setFilesUpdated}}>
                         {connectionStatus === "open" && (
                             <SocketContext.Provider value = {{socket, connectionStatus}}>
@@ -117,7 +116,7 @@ export const Dashboard = () => {
                     <SideBar/>
 				</div>
 				<div className='ml-[15%] w-[85%]'>
-                    <Search/>
+                    <SearchBar type={'all'} date={'all'} size={'all'}/>
                     <FilesContext.Provider value = {{filesUpdated, setFilesUpdated}}>
                         {connectionStatus === "open" && (
                             <SocketContext.Provider value = {{socket, connectionStatus}}>

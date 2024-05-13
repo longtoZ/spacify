@@ -20,6 +20,25 @@
     --box-shadow-thick: 0 0 20px rgb(0 0 0 /60%);
     --text-light-teal: #8fcdcd;
     --text-tomato: #ff6347;
+    --bg-hover: #0000001f;
+    --thumb-color: #192a3d;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--thumb-color);
+    border-radius: 20px;
+}
+
+input:focus-visible {
+    outline: none;
 }
 
 body {
