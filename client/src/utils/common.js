@@ -30,20 +30,20 @@ export const displayFileSize = (size) => {
     }
 }
 
-export const displayDate = (date) => {
-    const day = date.substr(0, 2);
-    const month = date.substr(2, 2);
-    const year = date.substr(4, 4);
-    const hour = date.substr(9, 2);
-    const minute = date.substr(11, 2);
-    const second = date.substr(13, 2);
+const formatTwoDigits = (number) => {
+    return number < 10 ? `0${number}` : `${number}`;
+};
 
-    const lastModifiedDate = new Date(year, month - 1, day, hour, minute, second);
+export const displayDate = (date) => {
+
+    const lastModifiedDate = new Date(parseInt(date));
     const currentDate = new Date();
 
     if (currentDate - lastModifiedDate <= 86400000) {
-        return `${hour}:${minute}:${second}`;
+        return `${formatTwoDigits(lastModifiedDate.getHours())}:${formatTwoDigits(lastModifiedDate.getMinutes())}:${formatTwoDigits(lastModifiedDate.getSeconds())}`;
     } else {
-        return `${day}/${month}/${year}`;
+        return `${formatTwoDigits(lastModifiedDate.getDate())}/${formatTwoDigits(lastModifiedDate.getMonth() + 1)}/${lastModifiedDate.getFullYear()}`;
     }
 }
+
+export const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();

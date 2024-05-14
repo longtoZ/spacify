@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext } from 'react';
+import React, { useState, useEffect, useRef, createContext } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -6,6 +6,7 @@ import { displayDate, displayFileSize } from '../../utils/common';
 
 import { SearchBar } from '../../components/dashboard/SearchBar';
 import { Dropdown } from '../../components/dropdown/Dropdown';
+import { ProfileIcon } from '../../components/dashboard/ProfileIcon';
 
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 
@@ -30,20 +31,16 @@ export const Search = () => {
         size: searchParams.get('size') || 'all',
     });
 
-    const typeRef = useRef(null);
-    const dateRef = useRef(null);
-    const sizeRef = useRef(null);
-
     // Get search result
     useEffect(() => {
         axios
             .get('http://localhost:3000/api/search', {
                 params: {
                     username: username,
-                    name: query.name,
-                    type: query.type,
-                    date: query.date,
-                    size: query.size,
+                    name: query.name.toLowerCase(),
+                    type: query.type.toLowerCase(),
+                    date: query.date.toLowerCase(),
+                    size: query.size.toLowerCase(),
                 },
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
@@ -72,24 +69,27 @@ export const Search = () => {
                     <h1 className='font-bold mt-[3rem] mb-[2rem]'>Filter</h1>
                     <div className=''>
                         <filterContext.Provider value={{query, setQuery}}>
-                            <div className='flex flex-row justify-between mb-[1rem]'>
-                                <span className='w-[30%]'>Type</span>
-                                <Dropdown type={'type'} options={["File", "Folder", "All"]}/>
+                            <div className='flex flex-row items-center justify-between mb-[1rem]'>
+                                <span>Type</span>
+                                <Dropdown type={'type'} options={["File", "Folder", "All"]} title={query.type}/>
                             </div>
-                            <div className='flex flex-row justify-between mb-[1rem]'>
-                                <span className='w-[30%]'>Date</span>
-                                <Dropdown type={'date'} options={["Today", "This week", "This month", "All"]}/>
+                            <div className='flex flex-row items-center justify-between mb-[1rem]'>
+                                <span>Date</span>
+                                <Dropdown type={'date'} options={["Last 1 day", "Last 7 days", "Last 30 days", "All"]} title={query.date}/>
                             </div>
-                            <div className='flex flex-row justify-between mb-[1rem]'>
-                                <span className='w-[30%]'>Size</span>
-                                <Dropdown type={'size'} options={["Small", "Medium", "Large", "All"]}/>
+                            <div className='flex flex-row items-center justify-between mb-[1rem]'>
+                                <span>Size</span>
+                                <Dropdown type={'size'} options={["Small", "Medium", "Large", "Huge", "All"]} title={query.size}/>
                             </div>
                         </filterContext.Provider>
 
                     </div>
                 </div>
                 <div className='ml-[15%] w-[85%]'>
-                    <SearchBar type={query.type} date={query.date} size={query.size}/>
+                    <div className='flex justify-between'>
+                        <SearchBar name={query.name} type={query.type} date={query.date} size={query.size}/>
+                        <ProfileIcon/>
+                    </div>
                     <h1 className='text-xl font-bold mx-1 mt-[2rem] mb-[1rem]'>Search result</h1>
                     <ul className='bg-primary-1 rounded-lg p-4'>
                         <li className='flex gap-4 justify-between mb-4'>
@@ -107,7 +107,7 @@ export const Search = () => {
 
                                     if (!e.ctrlKey) {
                                         const fullId = folder.parent_id;
-                                        const id = fullId == 'null' ? '' : fullId.substr(fullId.indexOf('_', 0) + 1)
+                                        const id = fullId === 'null' ? '' : fullId.substr(fullId.indexOf('_', 0) + 1)
 
                                         navigate(`/dashboard/${id}`)
                                     }
@@ -144,7 +144,7 @@ export const Search = () => {
 
                                     if (!e.ctrlKey) {
                                         const fullId = file.folder_id;
-                                        const id = fullId == 'null' ? '' : fullId.substr(fullId.indexOf('_', 0) + 1)
+                                        const id = fullId === 'null' ? '' : fullId.substr(fullId.indexOf('_', 0) + 1)
 
                                         navigate(`/dashboard/${id}`)
                                     }

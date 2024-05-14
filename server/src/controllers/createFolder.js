@@ -1,5 +1,5 @@
 import { pool } from '../connect.js';
-import { createTimestampString } from "../utils/common.js";
+import { createTimestampInt } from '../utils/common.js';
 
 const createHomeFolder = async (username, folder_date) => {
     const queryCheck = `SELECT * FROM "folders" WHERE username = '${username}' AND folder_name = 'home';`;
@@ -10,7 +10,7 @@ const createHomeFolder = async (username, folder_date) => {
     if (queryCheckFolders.rowCount === 0) {
         console.log('Creating home folder...');
 
-        console.log(queryCreate)
+        console.log(queryCreate);
         const queryCreateFolders = await client.query(queryCreate);
         if (queryCreateFolders.rowCount === 0) {
             console.log('Failed to create home folder');
@@ -22,12 +22,19 @@ const createHomeFolder = async (username, folder_date) => {
     }
 
     client.release();
-}
+};
 
-const createFolder = async (res, username, folder_id, parent_id, folder_name, folder_date) => {
+const createFolder = async (
+    res,
+    username,
+    folder_id,
+    parent_id,
+    folder_name,
+    folder_date,
+) => {
     const query = `INSERT INTO "folders" (username, folder_id, parent_id, folder_name, folder_date) VALUES ('${username}', '${folder_id}', '${parent_id}', '${folder_name}', '${folder_date}');`;
-    
-    console.log(query)
+
+    console.log(query);
     const client = await pool.connect();
     const queryFolders = await client.query(query);
 
@@ -38,16 +45,22 @@ const createFolder = async (res, username, folder_id, parent_id, folder_name, fo
     }
 
     client.release();
-
-}
+};
 
 export const folderController = async (req, res) => {
     const username = req.query.username;
-    const folder_id = username + '_' + createTimestampString();
+    const folder_id = username + '_' + createTimestampInt().toString();
     const parent_id = username + '_' + req.query.parent_id;
     const folder_name = req.body.folder_name;
-    const folder_date = createTimestampString();
+    const folder_date = createTimestampInt();
 
     await createHomeFolder(username, folder_date);
-    await createFolder(res, username, folder_id, parent_id, folder_name, folder_date);
-}
+    await createFolder(
+        res,
+        username,
+        folder_id,
+        parent_id,
+        folder_name,
+        folder_date,
+    );
+};

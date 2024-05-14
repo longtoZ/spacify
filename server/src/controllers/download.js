@@ -55,7 +55,7 @@ function mergeFileContent(res, content, file_name) {
     // Merge the contents into one text file
     const mergedContent = content.join('\n');
 
-    res.setHeader('Content-Disposition', 'attachment; filename=' + file_name);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(file_name)}"`);
     res.setHeader('Content-Type', 'application/octet-stream');
 
     // Send the merged content directly in the response

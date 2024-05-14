@@ -33,25 +33,18 @@ export const Display = ({ channel_id, folderId, folderPath, displayFiles, authen
 
     // Socket event listener for download progress
     useEffect(() => {
-
-        console.log(displayFiles)
-
         if (connectionStatus === 'open' && socket) {
     
             socket.on('downloaded_chunk', (downloadProgress) => {
-                console.log(downloadProgress);
+                console.log("download progress ", downloadProgress);
                 // Update the progress of the file being uploaded
                 setDownloadFiles(prevFile => {
                     const updatedFile = [...prevFile];
-                    updatedFile[downloadProgress.order].percentage = downloadProgress.percentage;
+                    updatedFile[parseInt(downloadProgress.order)].percentage = downloadProgress.percentage;
                     return updatedFile;
                 });
             });
-    
-            // if (socket.connected) {
-            //     console.log(socket)
-            //     socket.emit("download_receiver", {socket_id: socket.id});
-            // }
+
         } else if (connectionStatus === 'disconnected') {
             console.log('Socket disconnected on download')
         }
@@ -369,7 +362,13 @@ export const Display = ({ channel_id, folderId, folderPath, displayFiles, authen
                             </div>
                             <div className='option-modal w-full h-0 rounded-lg flex flex-row-reverse z-20 overflow-hidden' style={{transition:'all ease 0.2s'}}>
 
-                                <div className='cursor-pointer flex rounded-lg my-[0.5rem] mx-2 p-2 hover:bg-bg-hover text-text-light-teal' onClick={() => handleFileDownload(file.folder_id, file.file_id, file.file_name, file.file_type)}>
+                                <div className='cursor-pointer flex rounded-lg my-[0.5rem] mx-2 p-2 hover:bg-bg-hover text-text-light-teal' onClick={() => {
+                                    setDownloadFiles([{
+                                        data: file,
+                                        percentage: 0
+                                    }]);
+                                    handleFileDownload(file.folder_id, file.file_id, file.file_name, file.file_type, 0);
+                                }}>
                                     <FileDownloadRoundedIcon />
                                     <span className='ml-4'>Download</span>
                                 </div>

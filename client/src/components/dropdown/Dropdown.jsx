@@ -3,10 +3,12 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 import { filterContext } from '../../pages/search/Search';
 
-export const Dropdown = ({type, options}) => {
+import { capitalize } from '../../utils/common';
+
+export const Dropdown = ({type, options, title}) => {
 
     const {query, setQuery} = useContext(filterContext);
-    const [selectedOption, setSelectedOption] = useState(options[0]);
+    const [selectedOption, setSelectedOption] = useState(title || options[0]);
     const [isOpen, setIsOpen] = useState(false);
 
     const handleOptionClick = (option) => {
@@ -32,13 +34,13 @@ export const Dropdown = ({type, options}) => {
     };
 
     return (
-        <div className="Dropdown w-[60%] relative cursor-pointer">
+        <div className="Dropdown w-[70%] relative cursor-pointer">
             <div className="relative dropdown-title rounded-md bg-primary-1 py-2 px-4 flex justify-between flex-row" onClick={() => setIsOpen(!isOpen)}>
-                {selectedOption}
+                {capitalize(selectedOption)}
                 <ArrowDropDownIcon className="ml-4 text-neutral-500" />
             </div>
             {isOpen && (
-                <div className="absolute z-20 w-full mt-2 dropdown-menu rounded-md bg-primary-1 py-2">
+                <div className="absolute z-20 w-full mt-2 dropdown-menu rounded-md bg-primary-1 py-2 shadow-2xl">
                     {options.map((option, index) => (
                         <div
                             key={index}

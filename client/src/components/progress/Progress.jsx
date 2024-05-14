@@ -45,7 +45,7 @@ export const Progress = () => {
 
     return (
         <div className="absolute right-8 bottom-4 z-[20]">
-            <div className="overflow-hidden rounded-md bg-primary-1 shadow-thick w-[20rem]">
+            <div className="overflow-hidden rounded-md bg-primary-1 shadow-2xl w-[20rem]">
                 <div className="w-full px-2 bg-primary-2 h-[2rem] cursor-pointer flex justify-between items-center relative" onClick={minimize}>
                     <h1>Filestream pannel</h1>
                     <KeyboardArrowDownRoundedIcon ref={arrowIconRef}/>

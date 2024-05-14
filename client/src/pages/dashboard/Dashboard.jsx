@@ -8,6 +8,7 @@ import { Upload } from '../../components/dashboard/Upload';
 import { SearchBar } from '../../components/dashboard/SearchBar';
 import { Display } from '../../components/dashboard/Display';
 import { Progress } from '../../components/progress/Progress';
+import { ProfileIcon } from '../../components/dashboard/ProfileIcon';
 
 import './dashboard.css';
 
@@ -116,7 +117,10 @@ export const Dashboard = () => {
                     <SideBar/>
 				</div>
 				<div className='ml-[15%] w-[85%]'>
-                    <SearchBar type={'all'} date={'all'} size={'all'}/>
+                    <div className='flex justify-between'>
+                        <SearchBar name={''} type={'all'} date={'all'} size={'all'}/>
+                        <ProfileIcon/>
+                    </div>
                     <FilesContext.Provider value = {{filesUpdated, setFilesUpdated}}>
                         {connectionStatus === "open" && (
                             <SocketContext.Provider value = {{socket, connectionStatus}}>

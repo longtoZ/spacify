@@ -1,6 +1,6 @@
 import { pool } from '../connect.js';
 import { client } from '../index.js';
-import { createTimestampString, wait } from '../utils/common.js';
+import { createTimestampInt, wait } from '../utils/common.js';
 import { MAX_RETRIES } from '../utils/constants.js';
 
 let retryCount = 0;
@@ -9,7 +9,7 @@ let retryCount = 0;
 const sendAttachment = async (channel_id, filename, file) => {
     const channel = await client.channels.fetch(channel_id);
     const message = await channel.send({
-        content: 'New file uploaded!',
+        content: `${filename} uploaded`,
         files: [
             {
                 attachment: Buffer.from(file),
@@ -65,7 +65,7 @@ const splitAndSendFile = async (
     fileBuffer,
     file_id,
 ) => {
-    const chunkSize = 1024 * 1024;
+    const chunkSize = 8 * 1024 * 1024;
     let offset = 0;
     let chunkNumber = 1;
     const chunk_data = [];
@@ -124,8 +124,8 @@ const postFileData = async (
 
     // Insert the file data into the database
     const queryFiles = `INSERT INTO "files" (file_id, folder_id, file_name, file_type, file_size, file_date) VALUES ('${file_id}', '${folder_id}', '${file_name}', '${file_type}', '${file_size}', '${file_date}');`;
-    
-    console.log(queryFiles)
+
+    console.log(queryFiles);
     const queryDatas =
         `INSERT INTO "datas" (file_id, chunk, message_id) VALUES` +
         chunk_data
@@ -161,15 +161,14 @@ export const uploadController = async (req, res) => {
     const channel_id = req.query.channel_id;
     const folder_id = username + '_' + req.query.folder_id;
     const order = req.query.order;
-    const timestampString = createTimestampString();
+    const timestampString = createTimestampInt();
 
     const file = req.file;
     const file_name = Buffer.from(file.originalname, 'latin1').toString('utf8');
     const file_type = file.mimetype;
     const file_size = file.size;
     const file_date = timestampString;
-    const file_id =
-        username + '_' + timestampString;
+    const file_id = username + '_' + timestampString.toString();
 
     // Socket connection for uploading files
     const chunk_data = await splitAndSendFile(
