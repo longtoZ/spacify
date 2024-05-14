@@ -16,7 +16,9 @@ Are you prepared for enhanced file management? Now let's get going!
 
     ![Upload demo](./img/demo1.png)
 
-    *The process of uploading a file. Download is a reversed process (which deletes all messages that contain file's chunks from Discord).*
+    *The process of uploading a file. Download is a reversed process.*
+  
+- When you delete a file, the bot will delete all messages that contain file's chunks from Discord and also message ids from the database.
 
 ## 3. Features
 
